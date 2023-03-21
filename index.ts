@@ -177,7 +177,7 @@ app.use(express.json())
 app.use(helmet())
 
 app.post("/", async (req, res) => {
-  const email = "vitor036daniel@gmail.com" // req.body.Customer.email
+  const email = req.body.Customer.email
 
   if (req.body.Subscription.status === "active") {
     const user = await prisma.user.findFirst({
