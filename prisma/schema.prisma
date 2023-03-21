@@ -1,0 +1,17 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String  @id @default(uuid())
+  email      String  @unique
+  otp        Int     @unique
+  telegramId BigInt? @unique
+  active     Boolean @default(false)
+}
