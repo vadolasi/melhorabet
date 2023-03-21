@@ -131,8 +131,8 @@ async function main() {
           await writeFile("ids.json", JSON.stringify([...alredyUsedIds, ...mostProfitable.map(surebet => surebet.id)]))
 
           for (const surebet of mostProfitable) {
-            const linkA = (await fetch(surebet.linkA)).url
-            const linkB = (await fetch(surebet.linkB)).url
+            const linkA = (await fetch((await fetch(surebet.linkA)).url)).url
+            const linkB = (await fetch((await fetch(surebet.linkB)).url)).url
 
             const text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
 
