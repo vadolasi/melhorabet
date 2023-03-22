@@ -134,16 +134,20 @@ async function main() {
             const linkA = (await fetch((await fetch(surebet.linkA)).url)).url
             const linkB = (await fetch((await fetch(surebet.linkB)).url)).url
 
+            if (linkA.includes("arbitragemesportiva.com") || linkB.includes("arbitragemesportiva.com")) {
+              continue
+            }
+
             const text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
 
 🕐 Data/Hora: ${surebet.dataA}
 
 ⚽ ${surebet.nomeA}
 
-⚽ ${surebet.legA.split("-")[0]} 🤑(odd: ${surebet.oddsA})
+⚽ ${surebet.legA} 🤑(odd: ${surebet.oddsA})
 🍙 Casa de aposta e jogo: [${surebet.casaA}](${linkA})
 
-⚽ ${surebet.legB.split("-")[0]} 🤑(odd: ${surebet.oddsB})
+⚽ ${surebet.legB} 🤑(odd: ${surebet.oddsB})
 🍙 Casa de aposta e jogo: [${surebet.casaB}](${linkB})
 
 Calculadora: https://sitesdeapostas.bet/calculadora/
