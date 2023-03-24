@@ -43,14 +43,16 @@ export const handler = async (callback: (surebets: Surebet[]) => void) => {
       const [preLinkA, preLinkB] = $record.find(".event a").toArray().map(link => $(link).attr("href") as string)
 
       response = await fetch(`https://pt.surebet.com${preLinkA}`)
-      let linkA = (await response.text()).match(/value=\\"(http[s]?:\/\/\S+)\\"/)?.[1] as string || ""
+      let data = await response.text()
+      let linkA = data.match(/value=\\"(http[s]?:\/\/\S+)\\"/)?.[1] as string || data.match(/action=\\"(http[s]?:\/\/\S+)\\"/)?.[1] as string || ""
 
       if (!linkA) {
         linkA = `https://pt.surebet.com${preLinkA}`
       }
 
       response = await fetch(`https://pt.surebet.com${preLinkB}`)
-      let linkB = (await response.text()).match(/value=\\"(http[s]?:\/\/\S+)\\"/)?.[1] as string || ""
+      data = await response.text()
+      let linkB = data.match(/value=\\"(http[s]?:\/\/\S+)\\"/)?.[1] as string || data.match(/action=\\"(http[s]?:\/\/\S+)\\"/)?.[1] as string || ""
 
       if (!linkB) {
         linkB = `https://pt.surebet.com${preLinkB}`
