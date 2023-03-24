@@ -81,9 +81,6 @@ handler(async surebets => {
 
   💸 LUCRO DE ${surebet.profit}% 🤑`
 
-    console.log(text)
-
-    /*
     try {
       await bot.sendMessage(process.env.TELEGRAM_CHAT_ID!, text, {
         parse_mode: "Markdown",
@@ -92,7 +89,6 @@ handler(async surebets => {
     } catch (error) {
       console.log(error)
     }
-    */
   }
 
   await writeFile("ids.json", JSON.stringify([...usedIds, ...idsToSave]))
