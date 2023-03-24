@@ -65,6 +65,8 @@ handler(async surebets => {
 
     idsToSave.push(surebet.id)
 
+    console.log(surebet.linkA, surebet.linkB)
+
     const text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
 
 🕐 Data/Hora: ${surebet.datetime.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
