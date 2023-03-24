@@ -36,7 +36,7 @@ export const handler = async (callback: (surebets: Surebet[]) => void) => {
 
       const id = $record.attr("id") as string
 
-      const name = $record.find(".event a").text().trim()
+      const name = $record.find(".event a").first().text().trim()
 
       const datetime = new Date(Number($record.find(".time").attr("data-utc") as string))
 
