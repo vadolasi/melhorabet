@@ -30,7 +30,7 @@ export const handler = async (callback: (surebets: Surebet[]) => void) => {
         linkA = `https//pt.surebet.com${preLinkA}`
       }
 
-      linkA = new URL(linkA.replace(/\\/g, "").trim()).toString()
+      linkA = linkA.replace(/\\/g, "").trim()
 
       response = await fetch(`https://pt.surebet.com${preLinkB}`)
       let linkB = (await response.text()).match(/value=\\"(http[s]?:\/\/\S+)\\"/)?.[1] as string || ""
@@ -39,7 +39,7 @@ export const handler = async (callback: (surebets: Surebet[]) => void) => {
         linkB = `https//pt.surebet.com${preLinkB}`
       }
 
-      linkB = new URL(linkB.replace(/\\/g, "").trim()).toString()
+      linkB = linkB.replace(/\\/g, "").trim()
 
       const [siteA, siteB] = $record.find(".booker a").toArray().map(casa => $(casa).text().trim())
 
