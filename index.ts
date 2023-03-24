@@ -1,58 +1,17 @@
-import { fetch } from "undici"
-import TelegramBot = require("node-telegram-bot-api")
-import { chromium } from "playwright"
+import TelegramBot from "node-telegram-bot-api"
 import { config } from "dotenv"
 import { readFile, writeFile } from "fs/promises"
 import express from "express"
 import helmet from "helmet"
 import { PrismaClient } from "@prisma/client"
 import sgMail from "@sendgrid/mail"
+import { handler } from "./surebet"
 
 config()
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
 
 const prisma = new PrismaClient()
-
-const args = [
-  "--autoplay-policy=user-gesture-required",
-  "--disable-background-networking",
-  "--disable-background-timer-throttling",
-  "--disable-backgrounding-occluded-windows",
-  "--disable-breakpad",
-  "--disable-client-side-phishing-detection",
-  "--disable-component-update",
-  "--disable-default-apps",
-  "--disable-dev-shm-usage",
-  "--disable-domain-reliability",
-  "--disable-extensions",
-  "--disable-features=AudioServiceOutOfProcess",
-  "--disable-hang-monitor",
-  "--disable-ipc-flooding-protection",
-  "--disable-notifications",
-  "--disable-offer-store-unmasked-wallet-cards",
-  "--disable-popup-blocking",
-  "--disable-print-preview",
-  "--disable-prompt-on-repost",
-  "--disable-renderer-backgrounding",
-  "--disable-setuid-sandbox",
-  "--disable-speech-api",
-  "--disable-sync",
-  "--hide-scrollbars",
-  "--ignore-gpu-blacklist",
-  "--metrics-recording-only",
-  "--mute-audio",
-  "--no-default-browser-check",
-  "--no-first-run",
-  "--no-pings",
-  "--no-sandbox",
-  "--no-zygote",
-  "--password-store=basic",
-  "--use-gl=swiftshader",
-  "--use-mock-keychain",
-  "--disable-accelerated-2d-canvas",
-  "--disable-gpu"
-]
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN!, { polling: true })
 
@@ -96,85 +55,48 @@ bot.onText(/^[0-9]{6}$/, async msg => {
   }
 })
 
-async function main() {
-  const browser = await chromium.launch({ args })
+handler(async surebets => {
+  const usedIds = JSON.parse(await readFile("ids.json", "utf-8"))
 
-  const page = await browser.newPage()
+  const idsToSave = surebets.map(surebet => surebet.id)
 
-  const blockResources = [
-    "image",
-    "media",
-    "font",
-    "stylesheet"
-  ]
+  for (const surebet of surebets) {
+    if (usedIds.includes(surebet.id)) continue
 
-  await page.route("**", async route => {
-    if (blockResources.includes(route.request().resourceType())) {
-      await route.abort()
-    } else {
-      await route.continue()
+    idsToSave.push(surebet.id)
 
-      if (route.request().url().includes("/bet/getlist.php")) {
-        const response = await route.request().response()
+    const text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
 
-        if (response) {
-          const surebets = (await response.json()).surebets as any[]
+  🕐 Data/Hora: ${surebet.datetime.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
 
-          const houses = ["Pinnacle", "Netbet", "Betsson", "Betano", "Betfair", "22bet"]
+  ⚽ ${surebet.name}
 
-          const alredyUsedIds = JSON.parse(await readFile("ids.json", "utf-8"))
+  ⚽ ${surebet.legA} 🤑(odd: ${surebet.oddsA})
+  🍙 Casa de aposta e jogo: [${surebet.siteA}](${surebet.linkA})
 
-          const mostProfitable = surebets
-            .filter(surebet => surebet.lucro >= 2 && !alredyUsedIds.includes(surebet.id) && houses.includes(surebet.casaA) && houses.includes(surebet.casaB))
-            .sort((a, b) => b.lucro - a.lucro)
+  ⚽ ${surebet.legB} 🤑(odd: ${surebet.oddsB})
+  🍙 Casa de aposta e jogo: [${surebet.siteB}](${surebet.linkB})
 
-          await writeFile("ids.json", JSON.stringify([...alredyUsedIds, ...mostProfitable.map(surebet => surebet.id)]))
+  Calculadora: https://sitesdeapostas.bet/calculadora/
 
-          for (const surebet of mostProfitable) {
-            const linkA = (await fetch((await fetch(surebet.linkA)).url)).url
-            const linkB = (await fetch((await fetch(surebet.linkB)).url)).url
+  💸 LUCRO DE ${surebet.profit}% 🤑`
 
-            if (linkA.includes("arbitragemesportiva.com") || linkB.includes("arbitragemesportiva.com")) {
-              continue
-            }
+    console.log(text)
 
-            const text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
-
-🕐 Data/Hora: ${surebet.dataA}
-
-⚽ ${surebet.nomeA}
-
-⚽ ${surebet.legA} 🤑(odd: ${surebet.oddsA})
-🍙 Casa de aposta e jogo: [${surebet.casaA}](${linkA})
-
-⚽ ${surebet.legB} 🤑(odd: ${surebet.oddsB})
-🍙 Casa de aposta e jogo: [${surebet.casaB}](${linkB})
-
-Calculadora: https://sitesdeapostas.bet/calculadora/
-
-💸 LUCRO DE ${surebet.lucro}% 🤑`
-
-            try {
-              await bot.sendMessage(process.env.TELEGRAM_CHAT_ID!, text, {
-                parse_mode: "Markdown",
-                disable_web_page_preview: true
-              })
-            } catch (error) {
-              console.log(error)
-            }
-          }
-        }
-      }
+    /*
+    try {
+      await bot.sendMessage(process.env.TELEGRAM_CHAT_ID!, text, {
+        parse_mode: "Markdown",
+        disable_web_page_preview: true
+      })
+    } catch (error) {
+      console.log(error)
     }
-  })
+    */
+  }
 
-  await page.goto("https://arbitragemesportiva.com/dashboard/")
-
-  await page.fill("#user_login", process.env.ARBITRAGEM_USER!)
-  await page.fill("#user_pass", process.env.ARBITRAGEM_PASS!)
-  await page.click("#rememberme")
-  await page.click("input[type=submit]")
-}
+  await writeFile("ids.json", JSON.stringify([...usedIds, ...idsToSave]))
+})
 
 const app = express()
 app.use(express.json())
@@ -255,7 +177,5 @@ app.post("/", async (req, res) => {
 })
 
 app.listen(Number(process.env.PORT || 3000), async () => {
-  console.log("Server started")
-  await main()
-  console.log("Bot started")
+  console.log("System started")
 })
