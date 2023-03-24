@@ -67,19 +67,19 @@ handler(async surebets => {
 
     const text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
 
-  🕐 Data/Hora: ${surebet.datetime.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+🕐 Data/Hora: ${surebet.datetime.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
 
-  ⚽ ${surebet.name}
+⚽ ${surebet.name}
 
-  ⚽ ${surebet.legA} 🤑(odd: ${surebet.oddsA})
-  🍙 Casa de aposta e jogo: [${surebet.siteA}](${surebet.linkA})
+⚽ ${surebet.legA} 🤑(odd: ${surebet.oddsA})
+🍙 Casa de aposta e jogo: [${surebet.siteA}](${surebet.linkA})
 
-  ⚽ ${surebet.legB} 🤑(odd: ${surebet.oddsB})
-  🍙 Casa de aposta e jogo: [${surebet.siteB}](${surebet.linkB})
+⚽ ${surebet.legB} 🤑(odd: ${surebet.oddsB})
+🍙 Casa de aposta e jogo: [${surebet.siteB}](${surebet.linkB})
 
-  Calculadora: https://sitesdeapostas.bet/calculadora/
+Calculadora: https://sitesdeapostas.bet/calculadora/
 
-  💸 LUCRO DE ${surebet.profit}% 🤑`
+💸 LUCRO DE ${surebet.profit}% 🤑`
 
     try {
       await bot.sendMessage(process.env.TELEGRAM_CHAT_ID!, text, {
