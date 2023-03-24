@@ -79,7 +79,7 @@ handler(async surebets => {
 
 Calculadora: https://sitesdeapostas.bet/calculadora/
 
-💸 LUCRO DE ${surebet.profit}% 🤑`
+💸 LUCRO DE ${Math.round(surebet.profit)}% 🤑`
 
     try {
       await bot.sendMessage(process.env.TELEGRAM_CHAT_ID!, text, {
