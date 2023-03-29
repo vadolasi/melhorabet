@@ -63,6 +63,8 @@ handler(async surebets => {
   for (const surebet of surebets) {
     if (usedIds.includes(surebet.id)) continue
 
+    if (surebet.datetime < new Date(Date.now() + 24 * 60 * 60 * 1000)) continue
+
     idsToSave.push(surebet.id)
 
     const text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
