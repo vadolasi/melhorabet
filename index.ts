@@ -49,7 +49,7 @@ bot.onText(/^[0-9]{6}$/, async msg => {
 
 👉🏻 ${invite_link}`)
 
-    await bot.sendMessage(chatId, `Não esquece de manter a assinatura em dia para continuar tendo acesso ao grupo!`)
+    await bot.sendMessage(chatId, `Para permanecer tendo acesso ao sistema e ao grupo, continue com a assinatura ativa ou será removido de forma automática`)
   } else {
     await bot.sendMessage(chatId, "Código de ativação inválido")
   }
