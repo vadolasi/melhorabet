@@ -1,0 +1,25 @@
+service: sender
+frameworkVersion: "3"
+
+useDotenv: true
+
+plugins:
+  - serverless-plugin-typescript
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  architecture: arm64
+  environment:
+    APP_AWS_REGION: ${env:APP_AWS_REGION}
+    APP_AWS_ACCESS_KEY_ID: ${env:APP_AWS_ACCESS_KEY_ID}
+    APP_AWS_SECRET_ACCESS_KEY: ${env:APP_AWS_SECRET_ACCESS_KEY}
+    SQS_URL: ${env:SQS_URL}
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - httpApi:
+          path: /
+          method: post
