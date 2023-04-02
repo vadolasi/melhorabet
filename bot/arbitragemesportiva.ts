@@ -61,6 +61,13 @@ export const handler = async (callback: (surebets: Surebet[]) => void) => {
 
   const page = await browser.newPage()
 
+  await page.goto("https://arbitragemesportiva.com/login/")
+
+  await page.fill("#user_login", process.env.ARBITRAGEMESPORTIVA_EMAIL!)
+  await page.fill("#user_pass", process.env.ARBITRAGEMESPORTIVA_PASSWORD!)
+
+  await page.click("#wp-submit")
+
   const blockResources = [
     "image",
     "media",
