@@ -3,7 +3,7 @@ import { config } from "dotenv"
 import { readFile, writeFile } from "fs/promises"
 import { PrismaClient } from "@prisma/client"
 import sgMail from "@sendgrid/mail"
-import { handler } from "./arbitragemesportiva"
+import { handler } from "./surebet"
 import { Consumer } from "sqs-consumer"
 import { SQS } from "@aws-sdk/client-sqs"
 

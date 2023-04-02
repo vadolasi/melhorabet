@@ -57,7 +57,7 @@ interface Surebet {
 }
 
 export const handler = async (callback: (surebets: Surebet[]) => void) => {
-  const browser = await chromium.launch({ args })
+  const browser = await chromium.launch({ args, headless: false })
 
   const page = await browser.newPage()
 
@@ -87,11 +87,14 @@ export const handler = async (callback: (surebets: Surebet[]) => void) => {
         if (response) {
           const surebets = (await response.json()).surebets as any[]
 
-          const houses = ["Pinnacle", "Netbet", "Betsson", "Betano", "Betfair", "22bet"]
+          const houses = ["Pinnacle", "Netbet", "Betsson", "Betano", "Betfair", "22Bet"]
 
           const mostProfitable = surebets
-            .filter(surebet => houses.includes(surebet.casaA) && houses.includes(surebet.casaB))
+            .filter(surebet => surebet.lucro >= 2 && houses.includes(surebet.casaA) && houses.includes(surebet.casaB))
             .sort((a, b) => b.lucro - a.lucro)
+            .sort((a, b) => b.confianca - a.confianca)
+
+          console.log(JSON.stringify(surebets, null, 2))
 
           const surebetsToSave: Surebet[] = []
 
@@ -102,7 +105,7 @@ export const handler = async (callback: (surebets: Surebet[]) => void) => {
             surebetsToSave.push({
               id: surebet.id,
               name: surebet.nomeA,
-              datetime: new Date(surebet.dataA),
+              datetime: new Date(`2023-${surebet.data} ${surebet.hora}`),
               linkA,
               linkB,
               siteA: surebet.casaA,
