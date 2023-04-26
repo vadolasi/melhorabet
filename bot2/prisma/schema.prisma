@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoAposta {
+  RESULTADO
+  AMBAS_MARCAM
+  EMPATE_ANULA
+}
+
+enum Casas {
+  ESTRELABET
+}
+
+model Aposta {
+  id     String @id @default(cuid())
+  tipo   TipoAposta
+  info   String?
+  odds   Float[]
+  jogo   Jogo   @relation(fields: [jogoId], references: [id])
+  jogoId String
+}
+
+model Jogo {
+  id      String  @id
+  casa    String
+  apostas Aposta[]
+  time1   String
+  time2   String
+  data    DateTime
+}
