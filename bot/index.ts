@@ -101,7 +101,12 @@ Calculadora: https://sitesdeapostas.bet/calculadora/
       console.log(error)
     }
 
-    if (surebet.siteA === "Betano" || surebet.siteB === "Betano" && surebet.siteA === "22Bet" || surebet.siteB === "22Bet") {
+    if (
+      surebet.siteA.toLocaleLowerCase().includes("betano") ||
+      surebet.siteB.toLocaleLowerCase().includes("betano") &&
+      surebet.siteA.toLocaleLowerCase().includes("22bet") ||
+      surebet.siteB.toLocaleLowerCase().includes("22Bet")
+    ) {
       text += `
 ⚠️ ANTES DE APOSTAR, VERIFIQUE SE AS ODDS E OS JOGOS CORRESPONDEM AO DESCRITO AQUI ⚠️`
 
