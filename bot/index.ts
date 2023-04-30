@@ -22,6 +22,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
 const prisma = new PrismaClient()
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN!, { polling: true })
+const bot2 = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN2!, { polling: true })
 
 bot.onText(/\/start/, async msg => {
   const chatId = msg.chat.id
@@ -75,7 +76,7 @@ handler(async surebets => {
 
     idsToSave.push(surebet.id)
 
-    const text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
+    let text = `✅♾ OPERAÇÃO INFINITY GAIN ♾✅
 
 🕐 Data/Hora: ${surebet.datetime.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
 
@@ -98,6 +99,18 @@ Calculadora: https://sitesdeapostas.bet/calculadora/
       })
     } catch (error) {
       console.log(error)
+    }
+
+    if (surebet.siteA === "Betano" || surebet.siteB === "Betano" && surebet.siteA === "22Bet" || surebet.siteB === "22Bet") {
+      text += `
+⚠️ ANTES DE APOSTAR, VERIFIQUE SE AS ODDS E OS JOGOS CORRESPONDEM AO DESCRITO AQUI ⚠️`
+
+      try {
+        await bot2.sendMessage(process.env.TELEGRAM_CHAT_ID2!, text, {
+          parse_mode: "Markdown",
+          disable_web_page_preview: true
+        })
+      } catch {}
     }
   }
 

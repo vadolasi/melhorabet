@@ -1,6 +1,6 @@
 import { chromium } from "playwright-extra"
 import stealth from "puppeteer-extra-plugin-stealth"
-import { PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 import { createHash } from "crypto"
 
 function getHash(text: string) {
@@ -62,7 +62,7 @@ const block_resources = [
 ]
 
 async function main() {
-  const browser = await chromium.launch({ args, headless: false })
+  const browser = await chromium.launch({ args })
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } })
 
   const page = await context.newPage()
@@ -95,121 +95,166 @@ async function main() {
   }
 
   for (const contryLink of contriesLinks) {
-    await contryLink.click()
-    const leagues = await page.$$(".ng-star-inserted.active > ul > li > ol > li > a >> visible=true")
+    try {
+      await contryLink.click()
+      const leagues = await page.$$(".ng-star-inserted.active > ul > li > ol > li > a >> visible=true")
 
-    for (const league of leagues) {
-      if (!(league.isVisible())) {
-        await league.click()
-      }
+      for (const league of leagues) {
+        try {
+          if (await league.isVisible()) {
+            await league.click({ force: true })
+          }
 
-      await page.waitForSelector(".btn.other-btn.waves-effect.waves-light.modal-trigger")
-      const games = await page.$$(".btn.other-btn.waves-effect.waves-light.modal-trigger")
-      const gamesLength = games.length
+          await page.waitForSelector(".btn.other-btn.waves-effect.waves-light")
+          const games = await page.$$(".btn.other-btn.waves-effect.waves-light")
+          const gamesLength = games.length
 
-      /*
-      for (let i = 0; i < gamesLength; i++) {
-        await page.waitForSelector(".btn.other-btn.waves-effect.waves-light.modal-trigger")
-        const game = (await page.$$(".btn.other-btn.waves-effect.waves-light.modal-trigger"))[i]
+          for (let i = 0; i < gamesLength; i++) {
+            try {
+              await page.waitForSelector(".btn.other-btn.waves-effect.waves-light")
+              const game = (await page.$$(".btn.other-btn.waves-effect.waves-light"))[i]
 
-        if (!game) {
-          break
-        }
+              if (!game) {
+                break
+              }
 
-        await game.click()
+              await game.click()
 
-        await page.waitForSelector("div.modul-accordion.bet-type-group.ng-star-inserted:has(span.header-text:text-is('Resultado'))")
+              await page.waitForSelector("div.modul-accordion.bet-type-group.ng-star-inserted:has(span.header-text:text-is('Resultado'))")
 
-        const resultadoBlock = await page.$("div.modul-accordion.bet-type-group.ng-star-inserted:has(span.header-text:text-is('Resultado'))")!
+              const resultadoBlock = await page.$("div.modul-accordion.bet-type-group.ng-star-inserted:has(span.header-text:text-is('Resultado'))")!
 
-        const resultadoOdds = await Promise.all((await resultadoBlock?.$$(".bet-btn-odd") ?? []).map(async (odd) => Number(await odd.innerText())))
+              const resultadoOdds = await Promise.all((await resultadoBlock?.$$(".bet-btn-odd") ?? []).map(async (odd) => Number(await odd.innerText())))
 
-        const ambasMarcamBlock = await page.$("div.modul-accordion.bet-type-group.ng-star-inserted:has(span.header-text:text-is('Ambas equipes marcam'))")
+              const ambasMarcamBlock = await page.$("div.modul-accordion.bet-type-group.ng-star-inserted:has(span.header-text:text-is('Ambas equipes marcam'))")
 
-        const ambasMarcamOdds = await Promise.all((await ambasMarcamBlock?.$$(".bet-btn-odd") ?? []).map(async (odd) => Number(await odd.innerText())))
+              const ambasMarcamOdds = await Promise.all((await ambasMarcamBlock?.$$(".bet-btn-odd") ?? []).map(async (odd) => Number(await odd.innerText())))
 
-        const [team1, team2] = (await page.innerText(".center.flex-item.truncate.ng-star-inserted")).trim().split("-")
+              const [team1, team2] = (await page.innerText(".center.flex-item.truncate.ng-star-inserted")).trim().split("-")
 
-        const [date, hour] = (await page.innerText(".sr-lmt-plus-scb__status.srt-text-secondary.srt-neutral-9")).trim().split("|")
-        const [day, monthCode] = date.trim().split(" ")
-        const month = mapAbrevToMonth[monthCode]
-        const [hourNumber, minutes] = hour.trim().split(":")
+              const [date, hour] = (await page.innerText(".sr-lmt-plus-scb__status.srt-text-secondary.srt-neutral-9")).trim().split("|")
+              const [day, monthCode] = date.trim().split(" ")
+              const month = mapAbrevToMonth[monthCode]
+              const [hourNumber, minutes] = hour.trim().split(":")
 
-        const datetime = new Date(new Date().getFullYear(), month, Number(day), Number(hourNumber), Number(minutes))
+              const datetime = new Date(new Date().getFullYear(), month, Number(day), Number(hourNumber), Number(minutes))
 
-        const id = getHash(`estrelabet${team1}${team2}${date.toLocaleString()}`)
+              const totalGolsGroups = await page.$$(".modul-accordion.bet-type-group.ng-star-inserted:has(span.header-text:has-text('Total Gols')) .flex-container.bet-type-btn-group.ng-star-inserted")
+              const totalGolsOdds: { value: number, odds: [number, number] }[] = []
 
-        await prisma.jogo.upsert({
-          where: {
-            id
-          },
-          create: {
-            id,
-            time1: team1,
-            time2: team2,
-            data: datetime,
-            casa: "estrelabet",
-            apostas: {
-              create: [
-                {
-                  tipo: "RESULTADO" as const,
-                  id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}Resultado`),
-                  odds: resultadoOdds
+              for (const totalGolsGroup of totalGolsGroups) {
+                const odds = await Promise.all((await totalGolsGroup.$$(".bet-btn-odd") ?? []).map(async (odd) => Number(await odd.innerText()))) as [number, number]
+
+                const totalGolsValue = Number((await (await totalGolsGroup.$("span.flex-item.bet-btn-text"))?.innerText())?.split(" ")[2])
+
+                totalGolsOdds.push({
+                  value: totalGolsValue,
+                  odds
+                })
+              }
+
+              const id = getHash(`estrelabet${team1}${team2}${date.toLocaleString()}`)
+
+              await prisma.jogo.upsert({
+                where: {
+                  id
                 },
-                {
-                  tipo: "AMBAS_MARCAM" as const,
-                  id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}AmbasMarcam`),
-                  odds: ambasMarcamOdds
-                }
-              ]
-            }
-          },
-          update: {
-            apostas: {
-              upsert: [
-                {
-                  where: {
-                    id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}Resultado`)
-                  },
-                  create: {
-                    tipo: "RESULTADO",
-                    id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}Resultado`),
-                    odds: resultadoOdds
-                  },
-                  update: {
-                    odds: resultadoOdds
+                create: {
+                  id,
+                  time1: team1,
+                  time2: team2,
+                  data: datetime,
+                  casa: "estrelabet",
+                  apostas: {
+                    create: [
+                      {
+                        tipo: "RESULTADO" as const,
+                        id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}Resultado`),
+                        odds: resultadoOdds
+                      },
+                      {
+                        tipo: "AMBAS_MARCAM" as const,
+                        id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}AmbasMarcam`),
+                        odds: ambasMarcamOdds
+                      },
+                      ...totalGolsOdds.map((odd) => ({
+                        tipo: "TOTAL_GOLS",
+                        id: getHash(`estrelabet${team1}${team2}${datetime.toLocaleString()}TotalGols${odd.value}`),
+                        odds: odd.odds,
+                        info: {
+                          value: odd.value,
+                          times: "x"
+                        }
+                      } as Prisma.ApostaCreateWithoutJogoInput))
+                    ]
                   }
                 },
-                {
-                  where: {
-                    id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}AmbasMarcam`)
-                  },
-                  create: {
-                    tipo: "AMBAS_MARCAM",
-                    id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}AmbasMarcam`),
-                    odds: ambasMarcamOdds
-                  },
-                  update: {
-                    odds: ambasMarcamOdds
+                update: {
+                  apostas: {
+                    upsert: [
+                      {
+                        where: {
+                          id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}Resultado`)
+                        },
+                        create: {
+                          tipo: "RESULTADO",
+                          id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}Resultado`),
+                          odds: resultadoOdds
+                        },
+                        update: {
+                          odds: resultadoOdds
+                        }
+                      },
+                      {
+                        where: {
+                          id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}AmbasMarcam`)
+                        },
+                        create: {
+                          tipo: "AMBAS_MARCAM",
+                          id: getHash(`estrelabet${team1}${team2}${date.toLocaleString()}AmbasMarcam`),
+                          odds: ambasMarcamOdds
+                        },
+                        update: {
+                          odds: ambasMarcamOdds
+                        }
+                      },
+                      ...totalGolsOdds.map((odd) => ({
+                        where: {
+                          id: getHash(`estrelabet${team1}${team2}${datetime.toLocaleString()}TotalGols${odd.value}`)
+                        },
+                        create: {
+                          tipo: "TOTAL_GOLS",
+                          id: getHash(`estrelabet${team1}${team2}${datetime.toLocaleString()}TotalGols${odd.value}`),
+                          odds: odd.odds,
+                          info: {
+                            value: odd.value,
+                            times: "x"
+                          }
+                        },
+                        update: {
+                          odds: odd.odds
+                        }
+                      } as Prisma.ApostaUpsertWithWhereUniqueWithoutJogoInput))
+                    ]
                   }
                 }
-              ]
+              })
+            } catch (e) {
+              console.log(e)
+            } finally {
+              await page.goBack()
             }
           }
-        })
-
-        await page.goBack()
-      }*/
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
-  await prisma.aposta.deleteMany({
-    where: {
-      odds: {
-        equals: []
-      }
-    }
-  })
+  await browser.close()
 }
 
 main()

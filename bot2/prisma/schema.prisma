@@ -12,19 +12,23 @@ enum TipoAposta {
   RESULTADO
   AMBAS_MARCAM
   EMPATE_ANULA
+  TOTAL
 }
 
 enum Casas {
   ESTRELABET
+  PLAYPIX
+  F12BET
 }
 
 model Aposta {
-  id     String @id @default(cuid())
-  tipo   TipoAposta
-  info   String?
-  odds   Float[]
-  jogo   Jogo   @relation(fields: [jogoId], references: [id])
-  jogoId String
+  id       String @id @default(cuid())
+  tipo     TipoAposta
+  info     Json   @default("{}")
+  odds     Float[]
+  jogo     Jogo   @relation(fields: [jogoId], references: [id])
+  jogoId   String
+  surebets ApostaToSurebet[]
 }
 
 model Jogo {
@@ -34,4 +38,20 @@ model Jogo {
   time1   String
   time2   String
   data    DateTime
+}
+
+model ApostaToSurebet {
+  id               String @id @default(cuid())
+  aposta           Aposta @relation(fields: [apostaId], references: [id])
+  apostaId         String
+  surebet          Surebet @relation(fields: [surebetId], references: [id])
+  surebetId        String
+  selectedOddIndex Int
+}
+
+model Surebet {
+  id      String @id
+  apostas ApostaToSurebet[]
+  data    DateTime
+  lucro   Float
 }
