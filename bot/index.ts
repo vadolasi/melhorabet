@@ -102,10 +102,10 @@ Calculadora: https://sitesdeapostas.bet/calculadora/
     }
 
     if (
-      (surebet.siteA.toLocaleLowerCase().includes("betano") ||
-      surebet.siteB.toLocaleLowerCase().includes("betano")) &&
-      (surebet.siteA.toLocaleLowerCase().includes("22 bet") ||
-      surebet.siteB.toLocaleLowerCase().includes("22 Bet"))
+      (surebet.siteA.toLocaleLowerCase().replace(" ", "").includes("betano") ||
+      surebet.siteB.toLocaleLowerCase().replace(" ", "").includes("betano")) &&
+      (surebet.siteA.toLocaleLowerCase().replace(" ", "").includes("22bet") ||
+      surebet.siteB.toLocaleLowerCase().replace(" ", "").includes("22bet"))
     ) {
       text += `
 ⚠️ ANTES DE APOSTAR, VERIFIQUE SE AS ODDS E OS JOGOS CORRESPONDEM AO DESCRITO AQUI ⚠️`
